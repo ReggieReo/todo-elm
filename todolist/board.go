@@ -20,7 +20,7 @@ var board *Board
 func NewBoard() *Board {
 	help := help.New()
 	help.ShowAll = true
-	board = &Board{help: help, focused: todo}
+	board = &Board{help: help, focused: Todo}
 	board.initLists()
 	return board
 }
@@ -84,9 +84,9 @@ func (m *Board) View() string {
 	}
 	boardView := lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		m.cols[todo].View(),
-		m.cols[inProgress].View(),
-		m.cols[done].View(),
+		m.cols[Todo].View(),
+		m.cols[InProgress].View(),
+		m.cols[Done].View(),
 	)
 	return lipgloss.JoinVertical(lipgloss.Left, boardView, m.help.View(keys))
 }
