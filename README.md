@@ -18,7 +18,9 @@ A terminal-based Todo application with Kanban-style board using Go and the [Char
 
 - Go 1.24 or higher
 ### Install binary using go install
-go install github.com/ReggieReo/todo-elm@main
+```
+    go install github.com/ReggieReo/todo-elm@v1.0.0
+```
 
 ### Building from Source
 
