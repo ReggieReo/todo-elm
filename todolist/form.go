@@ -41,7 +41,7 @@ func (f Form) Init() tea.Cmd {
 	return nil
 }
 
-func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (f *Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case column:
