@@ -3,21 +3,21 @@ package todolist
 type status int
 
 const (
-	Todo status = iota
-	InProgress
-	Done
+	todo status = iota
+	inProgress
+	done
 )
 
 func (s status) getNext() status {
-	if s == Done {
-		return Todo
+	if s == done {
+		return todo
 	}
 	return s + 1
 }
 
 func (s status) getPrev() status {
-	if s == Todo {
-		return Done
+	if s == todo {
+		return done
 	}
 	return s - 1
 }
@@ -35,8 +35,8 @@ func NewTask(status status, title, description string) Task {
 }
 
 func (t *Task) Next() {
-	if t.status == Done {
-		t.status = Todo
+	if t.status == done {
+		t.status = todo
 	} else {
 		t.status++
 	}

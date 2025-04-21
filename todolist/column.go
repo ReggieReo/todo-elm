@@ -31,7 +31,7 @@ func (c *column) Focused() bool {
 
 func newColumn(status status) column {
 	var focus bool
-	if status == Todo {
+	if status == todo {
 		focus = true
 	}
 	defaultList := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
