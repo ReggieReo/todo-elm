@@ -18,7 +18,7 @@ type Form struct {
 }
 
 func newDefaultForm() *Form {
-	return NewForm("task name", "")
+	return NewForm("task name", "task description")
 }
 
 func NewForm(title, description string) *Form {

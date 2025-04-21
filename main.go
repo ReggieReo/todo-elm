@@ -334,10 +334,8 @@ func (m model) View() string {
 		viewContent = body
 
 	case authenticated:
-		msg := fmt.Sprintf("Welcome, %s!", m.username)
 		bContent := m.board.View()
-		// return bContent
-		viewContent = lipgloss.JoinVertical(lipgloss.Center, msg, footer, bContent)
+		viewContent = lipgloss.JoinVertical(lipgloss.Center, msg, bContent)
 
 	}
 
