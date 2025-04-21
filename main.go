@@ -181,6 +181,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// handle authenticated status
 	if m.state == authenticated {
+		// Check for 'b' key press to go back to sign-in
+		if keyMsg, ok := msg.(tea.KeyMsg); ok && keyMsg.String() == "b" {
+			m.state = menu
+			m.form = createMenuForm()
+			m.err = nil
+			m.board = nil
+			cmds = append(cmds, m.form.Init())
+			return m, tea.Batch(cmds...)
+		}
+
 		b, cmd := m.board.Update(msg)
 		m.board = b
 		cmds = append(cmds, cmd)
