@@ -80,6 +80,14 @@ func (c column) View() string {
 	return c.getStyle().Render(c.list.View())
 }
 
+type moveMsg struct {
+	Task
+}
+
+type deleteMsg struct {
+	status status
+}
+
 func (c *column) DeleteCurrent() tea.Cmd {
 	if len(c.list.VisibleItems()) > 0 {
 		c.list.RemoveItem(c.list.Index())
@@ -87,7 +95,7 @@ func (c *column) DeleteCurrent() tea.Cmd {
 
 	var cmd tea.Cmd
 	c.list, cmd = c.list.Update(nil)
-	return cmd
+	return tea.Sequence(cmd, func() tea.Msg { return deleteMsg{status: c.status} })
 }
 
 func (c *column) Set(i int, t Task) tea.Cmd {
@@ -115,10 +123,6 @@ func (c *column) getStyle() lipgloss.Style {
 		Border(lipgloss.HiddenBorder()).
 		Height(c.height).
 		Width(c.width)
-}
-
-type moveMsg struct {
-	Task
 }
 
 func (c *column) MoveToNext() tea.Cmd {

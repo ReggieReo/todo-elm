@@ -213,7 +213,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.err = nil
 		m.state = authenticated
 		m.opInProgress = ""
-		m.board = todolist.NewBoard()
+		m.board = todolist.NewBoard(msg.username, m.store)
 		fakeResize := func() tea.Msg {
 			return tea.WindowSizeMsg{Width: m.width, Height: m.height}
 		}
@@ -335,7 +335,7 @@ func (m model) View() string {
 
 	case authenticated:
 		bContent := m.board.View()
-		viewContent = lipgloss.JoinVertical(lipgloss.Center, msg, bContent)
+		viewContent = lipgloss.JoinVertical(lipgloss.Center, bContent)
 
 	}
 

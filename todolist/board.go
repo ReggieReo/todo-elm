@@ -1,6 +1,9 @@
 package todolist
 
 import (
+	"log"
+
+	persistence "github.com/ReggieReo/todo-elm/persistance"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -13,14 +16,21 @@ type Board struct {
 	focused  status
 	cols     []column
 	quitting bool
+	username string
+	store    *persistence.Store
 }
 
 var board *Board
 
-func NewBoard() *Board {
+func NewBoard(username string, store *persistence.Store) *Board {
 	help := help.New()
 	help.ShowAll = true
-	board = &Board{help: help, focused: todo}
+	board = &Board{
+		help:     help,
+		focused:  todo,
+		username: username,
+		store:    store,
+	}
 	board.initLists()
 	return board
 }
@@ -44,12 +54,23 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loaded = true
 		return m, tea.Batch(cmds...)
 	case *Form:
-		return m, m.cols[m.focused].Set(msg.index, msg.CreateTask())
+		cmd := m.cols[m.focused].Set(msg.index, msg.CreateTask())
+		if err := m.saveTasks(); err != nil {
+			log.Printf("Error saving tasks: %v", err)
+		}
+		return m, cmd
 	case moveMsg:
-		return m, m.cols[m.focused.getNext()].Set(APPEND, msg.Task)
+		cmd := m.cols[m.focused.getNext()].Set(APPEND, msg.Task)
+		if err := m.saveTasks(); err != nil {
+			log.Printf("Error saving tasks: %v", err)
+		}
+		return m, cmd
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Quit):
+			if err := m.saveTasks(); err != nil {
+				log.Printf("Error saving tasks: %v", err)
+			}
 			m.quitting = true
 			return m, tea.Quit
 		case key.Matches(msg, keys.Left):
@@ -68,6 +89,11 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	res, cmd := m.cols[m.focused].Update(msg)
 	if _, ok := res.(column); ok {
 		m.cols[m.focused] = res.(column)
+		if deleteMsg, ok := msg.(deleteMsg); ok && deleteMsg.status == m.focused {
+			if err := m.saveTasks(); err != nil {
+				log.Printf("Error saving tasks after deletion: %v", err)
+			}
+		}
 	} else {
 		return res, cmd
 	}

@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -10,6 +11,22 @@ import (
 	badger "github.com/dgraph-io/badger/v4"
 	"golang.org/x/crypto/bcrypt"
 )
+
+// TaskStatus represents the status of a task
+type TaskStatus int
+
+const (
+	Todo TaskStatus = iota
+	InProgress
+	Done
+)
+
+// Task represents a to-do task that can be persisted
+type Task struct {
+	Status      TaskStatus `json:"status"`
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+}
 
 // ErrUserExists is returned when trying to create a user that already exists.
 var ErrUserExists = errors.New("user already exists")
@@ -127,4 +144,54 @@ func (s *Store) AuthenticateUser(username, password string) (string, error) {
 
 	// Authentication successful
 	return username, nil
+}
+
+// taskKey generates the database key for a task.
+func taskKey(username string, status TaskStatus) []byte {
+	return []byte(fmt.Sprintf("tasks:%s:%d", username, status))
+}
+
+// SaveTasks saves the tasks for a specific user and status.
+func (s *Store) SaveTasks(username string, status TaskStatus, tasks []Task) error {
+	key := taskKey(username, status)
+
+	// Convert tasks to JSON
+	tasksJSON, err := json.Marshal(tasks)
+	if err != nil {
+		return fmt.Errorf("failed to marshal tasks: %w", err)
+	}
+
+	err = s.db.Update(func(txn *badger.Txn) error {
+		return txn.Set(key, tasksJSON)
+	})
+
+	return err
+}
+
+// LoadTasks loads the tasks for a specific user and status.
+func (s *Store) LoadTasks(username string, status TaskStatus) ([]Task, error) {
+	key := taskKey(username, status)
+	var tasks []Task
+
+	err := s.db.View(func(txn *badger.Txn) error {
+		item, err := txn.Get(key)
+		if err != nil {
+			if err == badger.ErrKeyNotFound {
+				// No tasks found, return empty slice
+				tasks = []Task{}
+				return nil
+			}
+			return fmt.Errorf("failed retrieving tasks: %w", err)
+		}
+
+		return item.Value(func(val []byte) error {
+			return json.Unmarshal(val, &tasks)
+		})
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
 }
