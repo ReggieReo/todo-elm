@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	persistence "github.com/ReggieReo/todo-elm/persistance"
+	"github.com/ReggieReo/todo-elm/todolist"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -35,6 +36,7 @@ type model struct {
 	form          *huh.Form
 	store         *persistence.Store
 	spinner       spinner.Model
+	board         tea.Model
 	err           error
 	username      string
 	opInProgress  string
@@ -176,6 +178,15 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
+
+	// handle authenticated status
+	if m.state == authenticated {
+		b, cmd := m.board.Update(msg)
+		m.board = b
+		cmds = append(cmds, cmd)
+		return m, tea.Batch(cmds...)
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -202,7 +213,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.err = nil
 		m.state = authenticated
 		m.opInProgress = ""
-		return m, nil
+		m.board = todolist.NewBoard()
+		fakeResize := func() tea.Msg {
+			return tea.WindowSizeMsg{Width: m.width, Height: m.height}
+		}
+		return m, fakeResize
 
 	case authErrMsg:
 		m.err = msg.err
@@ -231,7 +246,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, spinCmd)
 		}
 		return m, tea.Batch(cmds...)
-
 	}
 
 	// form handling
@@ -321,7 +335,9 @@ func (m model) View() string {
 
 	case authenticated:
 		msg := fmt.Sprintf("Welcome, %s!", m.username)
-		viewContent = lipgloss.JoinVertical(lipgloss.Center, msg, footer)
+		bContent := m.board.View()
+		// return bContent
+		viewContent = lipgloss.JoinVertical(lipgloss.Center, msg, footer, bContent)
 
 	}
 
