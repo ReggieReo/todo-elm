@@ -20,9 +20,9 @@ var board *Board
 func NewBoard() *Board {
 	help := help.New()
 	help.ShowAll = true
-	b := &Board{help: help, focused: todo}
-	b.initLists()
-	return b
+	board = &Board{help: help, focused: todo}
+	board.initLists()
+	return board
 }
 
 func (m *Board) Init() tea.Cmd {
@@ -43,7 +43,7 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.loaded = true
 		return m, tea.Batch(cmds...)
-	case Form:
+	case *Form:
 		return m, m.cols[m.focused].Set(msg.index, msg.CreateTask())
 	case moveMsg:
 		return m, m.cols[m.focused.getNext()].Set(APPEND, msg.Task)
@@ -60,6 +60,9 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.cols[m.focused].Blur()
 			m.focused = m.focused.getNext()
 			m.cols[m.focused].Focus()
+		case key.Matches(msg, keys.Help):
+			m.help.ShowAll = !m.help.ShowAll
+			return m, nil
 		}
 	}
 	res, cmd := m.cols[m.focused].Update(msg)
