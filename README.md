@@ -4,13 +4,11 @@ A terminal-based Todo application with Kanban-style board using Go and the [Char
 
 ## Features
 
-- Beautiful TUI (Terminal User Interface) with smooth animations and keyboard navigation
 - User authentication with secure password hashing
 - Kanban board with three columns: Todo, In Progress, and Done
 - Create, edit, and delete tasks
 - Move tasks between columns to track progress
 - Persistent storage using BadgerDB
-- Keyboard shortcuts for all operations
 
 ## Installation
 
